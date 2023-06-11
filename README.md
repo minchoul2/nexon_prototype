@@ -14,4 +14,4 @@ pyenv local 3.8.12  # 현재 디렉토리에 Python 버전을 3.8.12로 설정
 virtualenv venv  # venv라는 이름의 가상 환경 생성
 source venv/bin/activate  # 가상 환경 활성화
 
-pip install -r requirements.txt
+pip install -r ./requirment/requirements.txt
