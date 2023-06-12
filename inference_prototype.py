@@ -67,12 +67,18 @@ st.title('넥슨인 점심 추천을 해봅시다')
 
 # 사용자 입력 받기
 unique_items = sorted(df_user_item.columns.tolist())
-user_input = st.multiselect("선호하는 식당을 여러개 선택하세요(단, 선택된 식당은 추천에서 제외됩니다)", unique_items)
+
+multiselect_str = '''
+선호하는 식당을 여러개 선택하세요\n
+(단, 선택된 식당은 추천에서 제외됩니다)
+'''
+user_input = st.multiselect(multiselect_str, unique_items)
+st.write('결과는 {식당명 : 예상 선호도}로 예상 선호도가 큰 순으로 10개가 나열됩니다.')
 
 if user_input:
     item_score_dict = user_free_inference(user_input, df_user_item, model)
-    
-    for item, score in item_score_dict.items():
-        st.write(f"{item}: {score}")
+    result_df = pd.DataFrame(item_score_dict.items(), columns=['식당','예상 선호도'])
+    print(result_df)
+    st.dataframe(result_df)
 
         
