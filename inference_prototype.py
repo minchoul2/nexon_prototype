@@ -78,7 +78,6 @@ st.write('결과는 {식당명 : 예상 선호도}로 예상 선호도가 큰 �
 if user_input:
     item_score_dict = user_free_inference(user_input, df_user_item, model)
     result_df = pd.DataFrame(item_score_dict.items(), columns=['식당','예상 선호도'])
-    print(result_df)
     st.dataframe(result_df)
 
         
