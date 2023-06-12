@@ -30,7 +30,7 @@ model.load_state_dict(torch.load('./input/autorec_best_model.pt', map_location=t
 model.eval() 
 
 # 유저가 선택한 아이템에 대한 추천 생성 함수
-def user_free_inference(items, df_user_item, model, top_k=10):
+def user_free_inference(items, df_user_item, model, top_k=242):
     # Create a new user vector
     user_vector = np.zeros(df_user_item.shape[1])
     item_indices = []
@@ -55,7 +55,7 @@ def user_free_inference(items, df_user_item, model, top_k=10):
     # Remove the chosen items from the predictions
     predicted_ratings[item_indices] = -np.inf
 
-    top_k_item_indices = np.argsort(-predicted_ratings)[:top_k]
+    top_k_item_indices = np.argsort(-predicted_ratings)
     recommended_items = df_user_item.columns[top_k_item_indices]
     recommended_scores = predicted_ratings[top_k_item_indices]
 
@@ -73,11 +73,18 @@ multiselect_str = '''
 (단, 선택된 식당은 추천에서 제외됩니다)
 '''
 user_input = st.multiselect(multiselect_str, unique_items)
-st.write('결과는 {식당명 : 예상 선호도}로 예상 선호도가 큰 순으로 10개가 나열됩니다.')
+st.write('결과는 {식당명 : 예상 선호도}로 예상 선호도가 큰 순으로 나열됩니다.(예산 선호도는 0~1)')
 
 if user_input:
     item_score_dict = user_free_inference(user_input, df_user_item, model)
-    result_df = pd.DataFrame(item_score_dict.items(), columns=['식당','예상 선호도'])
+    scores = [score for score in item_score_dict.values() if score is not None and not np.isinf(score)]
+    max_score = max(scores)
+    min_score = min(scores) 
+    normalized_scores = {
+        item: (score - min_score) / (max_score - min_score)
+        for item, score in item_score_dict.items()
+    }
+    result_df = pd.DataFrame(normalized_scores.items(), columns=['식당','예상 선호도'])
     st.dataframe(result_df)
 
         
