@@ -6,29 +6,29 @@ from scipy.sparse import csr_matrix
 import torch
 from torch import nn
 
-# 데이터 불러오기
-data_1 = pd.read_csv('./input/payco_23.csv')
-data_2 = pd.read_csv('./input/payco_2304.csv')
-df = pd.concat([data_1,data_2])
-df = df[['사원번호','사용처']].rename({'사원번호':'userid', '사용처':'itemid'}, axis=1).reset_index()
+# # 데이터 불러오기
+# data_1 = pd.read_csv('./input/payco_23.csv')
+# data_2 = pd.read_csv('./input/payco_2304.csv')
+# df = pd.concat([data_1,data_2])
+# df = df[['사원번호','사용처']].rename({'사원번호':'userid', '사용처':'itemid'}, axis=1).reset_index()
 
-# 데이터 전처리
-# Create a new DataFrame with frequency count for each user-item pair
-df_grouped = df.groupby(['userid', 'itemid']).size().reset_index(name='frequency')
+# # 데이터 전처리
+# # Create a new DataFrame with frequency count for each user-item pair
+# df_grouped = df.groupby(['userid', 'itemid']).size().reset_index(name='frequency')
 
-user_u = list(sorted(df_grouped.userid.unique()))
-item_u = list(sorted(df_grouped.itemid.unique()))
+# user_u = list(sorted(df_grouped.userid.unique()))
+# item_u = list(sorted(df_grouped.itemid.unique()))
 
-user_c = CategoricalDtype(sorted(df_grouped['userid'].unique()), ordered=True)
-item_c = CategoricalDtype(sorted(df_grouped['itemid'].unique()), ordered=True)
+# user_c = CategoricalDtype(sorted(df_grouped['userid'].unique()), ordered=True)
+# item_c = CategoricalDtype(sorted(df_grouped['itemid'].unique()), ordered=True)
 
-row = df_grouped['userid'].astype(user_c).cat.codes
-col = df_grouped['itemid'].astype(item_c).cat.codes
-data = df_grouped['frequency'].tolist()
+# row = df_grouped['userid'].astype(user_c).cat.codes
+# col = df_grouped['itemid'].astype(item_c).cat.codes
+# data = df_grouped['frequency'].tolist()
 
-sparse_matrix = csr_matrix((data, (row, col)), shape=(len(user_u), len(item_u)))
+# sparse_matrix = csr_matrix((data, (row, col)), shape=(len(user_u), len(item_u)))
 
-df_user_item = pd.DataFrame.sparse.from_spmatrix(sparse_matrix, index=user_u, columns=item_u)
+df_user_item = pd.read_pickle('./input/user_item.pkl')
 
 # 모델 정의 AutoRec
 class AutoRec(nn.Module):
@@ -88,7 +88,7 @@ def user_free_inference(items, df_user_item, model, top_k=10):
 st.title('넥슨인 점심 추천을 해봅시다')
 
 # 사용자 입력 받기
-unique_items = sorted(df['itemid'].unique().tolist())
+unique_items = sorted(df_user_item.columns.tolist())
 user_input = st.multiselect("선호하는 식당을 여러개 선택하세요:", unique_items)
 
 if user_input:
