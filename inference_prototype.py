@@ -25,7 +25,8 @@ num_inputs = df_user_item.shape[1]  # 입력 차원의 수
 hidden_units = 500  # hidden layer의 unit 수
 device = torch.device('cpu')  # device 설정
 model = AutoRec(num_inputs, hidden_units).to(device)
-model.load_state_dict(torch.load('./input/autorec_best_model.pt'))
+model.load_state_dict(torch.load('./input/autorec_best_model.pt', map_location=torch.device('cpu')))
+
 model.eval() 
 
 # 유저가 선택한 아이템에 대한 추천 생성 함수
