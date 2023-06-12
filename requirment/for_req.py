@@ -1,22 +1,14 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[3]:
-
-
+import streamlit as st
+import numpy as np
 import pandas as pd
-
-data_1 = pd.read_csv('../input/payco_23.csv')
-data_2 = pd.read_csv('../input/payco_2304.csv')
-df = pd.concat([data_1,data_2])
-
-
-# In[2]:
-
-
-# Step 1: Create user-item matrix
 from pandas.api.types import CategoricalDtype
 from scipy.sparse import csr_matrix
+import torch
+from torch import nn
+
+data_1 = pd.read_csv('./input/payco_23.csv')
+data_2 = pd.read_csv('./input/payco_2304.csv')
+df = pd.concat([data_1,data_2])
 
 # Create a new DataFrame with frequency count for each user-item pair
 df_grouped = df.groupby(['userid', 'itemid']).size().reset_index(name='frequency')
@@ -35,14 +27,6 @@ sparse_matrix = csr_matrix((data, (row, col)), shape=(len(user_u), len(item_u)))
 
 df_user_item = pd.DataFrame.sparse.from_spmatrix(sparse_matrix, index=user_u, columns=item_u)
 
-
-# In[3]:
-
-
-# Step 2: Define AutoRec model
-import torch
-from torch import nn
-
 class AutoRec(nn.Module):
     def __init__(self, num_inputs, hidden_units):
         super(AutoRec, self).__init__()
@@ -54,76 +38,13 @@ class AutoRec(nn.Module):
         x = torch.sigmoid(self.encoder(x))
         x = self.decoder(x)
         return x
-
-
-# In[4]:
-
-
-# Step 3: Train and Test AutoRec model
-from torch.optim import Adam
-from torch.utils.data import Dataset, DataLoader, TensorDataset
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-# In[5]:
-
-
-# Hyperparameters
-hidden_units = 500
-num_epochs = 100
-batch_size = 64
-learning_rate = 1e-3
-
-model = AutoRec(df_user_item.shape[1], hidden_units).to(device)
-criterion = nn.MSELoss()
-optimizer = Adam(model.parameters(), lr=learning_rate)
-
-
-# In[6]:
-
-
-# Create DataLoaders
-data = torch.FloatTensor(df_user_item.values).to(device)
-dataset = TensorDataset(data)
-dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-
-# In[7]:
-
-
-# Training
-model.train()
-for epoch in range(num_epochs):
-    for i, (inputs,) in enumerate(dataloader):
-        inputs = inputs.to(device)
-
-        outputs = model(inputs)
-        loss = criterion(outputs, inputs)
-
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-    print(f"Epoch {epoch+1}/{num_epochs}, Loss: {loss.item()}")
-
-
-# In[8]:
-
-
-# Testing
-model.eval()
-with torch.no_grad():
-    inputs = data
-    outputs = model(inputs)
-    print(outputs)
-
-
-# In[18]:
-
-
-# Step 4: Generate recommendations
-import numpy as np
+    
+num_inputs = df_user_item.shape[1]  #
+hidden_units = 500  # 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # device
+model = AutoRec(num_inputs, hidden_units).to(device)
+model.load_state_dict(torch.load('./input/autorec_best_model.pt'))
+model.eval() 
 
 def user_free_inference(items, df_user_item, model, top_k=10):
     # Create a new user vector
@@ -156,7 +77,16 @@ def user_free_inference(items, df_user_item, model, top_k=10):
 
     # Convert item and score to dictionary
     item_score_dict = dict(zip(recommended_items.tolist(), recommended_scores.tolist()))
+    return item_score_dict
 
 
+unique_items = sorted(df['itemid'].unique().tolist())
+user_input = st.multiselect("", unique_items)
 
+if user_input:
+    item_score_dict = user_free_inference(user_input, df_user_item, model)
+    
+    for item, score in item_score_dict.items():
+        st.write(f"{item}: {score}")
 
+        
