@@ -1,33 +1,10 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-from pandas.api.types import CategoricalDtype
-from scipy.sparse import csr_matrix
 import torch
 from torch import nn
 
-# # 데이터 불러오기
-# data_1 = pd.read_csv('./input/payco_23.csv')
-# data_2 = pd.read_csv('./input/payco_2304.csv')
-# df = pd.concat([data_1,data_2])
-# df = df[['사원번호','사용처']].rename({'사원번호':'userid', '사용처':'itemid'}, axis=1).reset_index()
-
-# # 데이터 전처리
-# # Create a new DataFrame with frequency count for each user-item pair
-# df_grouped = df.groupby(['userid', 'itemid']).size().reset_index(name='frequency')
-
-# user_u = list(sorted(df_grouped.userid.unique()))
-# item_u = list(sorted(df_grouped.itemid.unique()))
-
-# user_c = CategoricalDtype(sorted(df_grouped['userid'].unique()), ordered=True)
-# item_c = CategoricalDtype(sorted(df_grouped['itemid'].unique()), ordered=True)
-
-# row = df_grouped['userid'].astype(user_c).cat.codes
-# col = df_grouped['itemid'].astype(item_c).cat.codes
-# data = df_grouped['frequency'].tolist()
-
-# sparse_matrix = csr_matrix((data, (row, col)), shape=(len(user_u), len(item_u)))
-
+# 데이터 불러오기
 df_user_item = pd.read_pickle('./input/user_item.pkl')
 
 # 모델 정의 AutoRec
