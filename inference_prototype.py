@@ -23,7 +23,7 @@ class AutoRec(nn.Module):
 # 모델 불러오기
 num_inputs = df_user_item.shape[1]  # 입력 차원의 수
 hidden_units = 500  # hidden layer의 unit 수
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # device 설정
+device = torch.device('cpu')  # device 설정
 model = AutoRec(num_inputs, hidden_units).to(device)
 model.load_state_dict(torch.load('./input/autorec_best_model.pt'))
 model.eval() 
@@ -66,7 +66,7 @@ st.title('넥슨인 점심 추천을 해봅시다')
 
 # 사용자 입력 받기
 unique_items = sorted(df_user_item.columns.tolist())
-user_input = st.multiselect("선호하는 식당을 여러개 선택하세요:", unique_items)
+user_input = st.multiselect("선호하는 식당을 여러개 선택하세요(단, 선택된 식당은 추천에서 제외됩니다)", unique_items)
 
 if user_input:
     item_score_dict = user_free_inference(user_input, df_user_item, model)
