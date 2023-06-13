@@ -74,22 +74,18 @@ multiselect_str = '''
 (단, 선택된 식당은 추천에서 제외됩니다)
 '''
 user_input = st.multiselect(multiselect_str, unique_items)
-st.write('결과는 {식당명 : 예상 선호도}로 예상 선호도가 큰 순으로 나열됩니다.(예산 선호도는 0~1)')
 
-if st.button('추천받기'):
-    if user_input:
-        st.write('결과는 {식당명 : 예상 선호도}로 예상 선호도가 큰 순으로 나열됩니다.(예산 선호도는 0~1)')
-        item_score_dict = user_free_inference(user_input, df_user_item, model)
-        scores = [score for score in item_score_dict.values() if score is not None and not np.isinf(score)]
-        max_score = max(scores)
-        min_score = min(scores) 
-        normalized_scores = {
-            item: (score - min_score) / (max_score - min_score)
-            for item, score in item_score_dict.items()
-        }
-        result_df = pd.DataFrame(normalized_scores.items(), columns=['식당','예상 선호도'])
-        st.dataframe(result_df)
-    else:
-        st.write("Please select at least one item.")
+if user_input:
+    st.write('결과는 {식당명 : 예상 선호도}로 예상 선호도가 큰 순으로 나열됩니다.(예상선호도는 0~1)')
+    item_score_dict = user_free_inference(user_input, df_user_item, model)
+    scores = [score for score in item_score_dict.values() if score is not None and not np.isinf(score)]
+    max_score = max(scores)
+    min_score = min(scores) 
+    normalized_scores = {
+        item: (score - min_score) / (max_score - min_score)
+        for item, score in item_score_dict.items()
+    }
+    result_df = pd.DataFrame(normalized_scores.items(), columns=['식당','예상 선호도'])
+    st.dataframe(result_df)
 
         
