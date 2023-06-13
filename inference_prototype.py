@@ -25,7 +25,8 @@ num_inputs = df_user_item.shape[1]  # 입력 차원의 수
 hidden_units = 500  # hidden layer의 unit 수
 device = torch.device('cpu')  # device 설정
 model = AutoRec(num_inputs, hidden_units).to(device)
-model.load_state_dict(torch.load('./input/autorec_best_model.pt', map_location=torch.device('cpu')))
+# model.load_state_dict(torch.load('./input/autorec_best_model.pt', map_location=torch.device('cpu')))
+model.load_state_dict(torch.load('./input/implicit_best_model.pt', map_location=torch.device('cpu')))
 
 model.eval() 
 
@@ -75,16 +76,20 @@ multiselect_str = '''
 user_input = st.multiselect(multiselect_str, unique_items)
 st.write('결과는 {식당명 : 예상 선호도}로 예상 선호도가 큰 순으로 나열됩니다.(예산 선호도는 0~1)')
 
-if user_input:
-    item_score_dict = user_free_inference(user_input, df_user_item, model)
-    scores = [score for score in item_score_dict.values() if score is not None and not np.isinf(score)]
-    max_score = max(scores)
-    min_score = min(scores) 
-    normalized_scores = {
-        item: (score - min_score) / (max_score - min_score)
-        for item, score in item_score_dict.items()
-    }
-    result_df = pd.DataFrame(normalized_scores.items(), columns=['식당','예상 선호도'])
-    st.dataframe(result_df)
+if st.button('추천받기'):
+    if user_input:
+        st.write('결과는 {식당명 : 예상 선호도}로 예상 선호도가 큰 순으로 나열됩니다.(예산 선호도는 0~1)')
+        item_score_dict = user_free_inference(user_input, df_user_item, model)
+        scores = [score for score in item_score_dict.values() if score is not None and not np.isinf(score)]
+        max_score = max(scores)
+        min_score = min(scores) 
+        normalized_scores = {
+            item: (score - min_score) / (max_score - min_score)
+            for item, score in item_score_dict.items()
+        }
+        result_df = pd.DataFrame(normalized_scores.items(), columns=['식당','예상 선호도'])
+        st.dataframe(result_df)
+    else:
+        st.write("Please select at least one item.")
 
         
